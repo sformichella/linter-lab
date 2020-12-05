@@ -1,29 +1,50 @@
-const stripInput = require('./stripInput');
+const stripCode = require('./stripCode');
 const Stack = require('./stack');
 
 
-const linter = (func) => {
+const linter = (code) => {
   const stack = new Stack;
-  const strippedFunc = stripInput(func);
+  const strippedCode = stripCode(code);
 
-  const openers = ['(', '[', '{'];
-  const pairs = ['()', '[]', '{}'];
+  const pairs = {
+    '(': ')',
+    '[': ']',
+    '{': '}',
+    ')': '(',
+    ']': '[',
+    '}': '{'
+  }
 
-  let doesLintingPass = true;
+  const openers = ['(', '[', '{']
 
-  strippedFunc.forEach(bracket => {
-    let opener = '';
+  strippedCode.forEach(bracket => {
 
     if (openers.includes(bracket)) stack.push(bracket)
-    else {
-      opener = stack.pop();
-      const pair = opener + bracket;
 
-      if (!pairs.includes(pair)) doesLintingPass = false;
+    else {
+      const closer = bracket;
+      const opener = stack.pop();
+
+      const pair = opener + closer;
+      const correctPair = opener + pairs[opener];
+
+      const isPairCorrect = pair === correctPair;
+
+      if (!isPairCorrect) {
+        if (opener) {
+          throw new Error(`error: mising ${pairs[opener]}`)
+        }
+        throw new Error(`error: extra ${closer} or missing ${pairs[closer]}`)
+      }
     }
+
   })
 
-  return doesLintingPass;
+  if (stack.peek()) {
+    throw new Error(`error: extra ${stack.peek()}`);
+  }
+
+  return true;
 }
 
 module.exports = {

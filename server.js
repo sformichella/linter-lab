@@ -7,11 +7,15 @@ app.use(express.json());
 const port = 7890;
 
 app.post('/api/linter', (req, res) => {
-  const lintee = req.body.function;
+  try {
+    const lintee = req.body.code;
 
-  const lintingResult = linter(lintee);
+    const lintingResult = linter(lintee);
 
-  res.json({ passes: lintingResult })
+    res.json({ passes: lintingResult });
+  } catch(e) {
+    res.json({ error: e.message });
+  }
 })
 
 app.listen(port, () => {
